@@ -30,18 +30,27 @@ public class FilePersistenceStrategy implements PersistenceStrategy {
 
 	@Override
 	public BoardState load() throws PersistenceException {
+		BufferedReader reader = null;
 		try {
-			BufferedReader reader = this.factory.getReader();
-			BoardState state = parseFileForBoardState(reader);
+			reader = this.factory.getReader();
+			String sState = reader.readLine();
+			BoardState state = new BoardState();
+			state.setOpen(Boolean.parseBoolean(sState));
 			return state;
 		} catch(IOException ioe) {
 			String msg = "Could not load board from file";
 			throw new PersistenceException(msg, ioe);
+		} finally {
+			if(reader != null) {
+				try {
+					reader.close();
+				} catch(IOException ioe) {
+					String msg = "Could not close the reader";
+					throw new PersistenceException(msg, ioe);
+				}
+			}
 		}
 	}
 
-	private BoardState parseFileForBoardState(BufferedReader reader) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
 }

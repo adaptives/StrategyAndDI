@@ -1,7 +1,7 @@
 package com.diycomputerscience.example.sanddi;
 
 import static org.easymock.EasyMock.*;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
@@ -16,6 +16,7 @@ public class FilePersistenceStrategyTest {
 	private BufferedReader reader;
 	private FileConnectionFactory fileConnectionFactory;
 	private FilePersistenceStrategy filePersistenceStrategy;
+	private Board board;
 	
 	
 	@Before
@@ -24,6 +25,7 @@ public class FilePersistenceStrategyTest {
 		this.reader =  createMock(BufferedReader.class);
 		this.fileConnectionFactory = new MockFileConnectionFactory(writer, reader);
 		this.filePersistenceStrategy = new FilePersistenceStrategy(fileConnectionFactory);
+		this.board = new  Board(this.filePersistenceStrategy);
 	}
 
 	@After
@@ -32,19 +34,33 @@ public class FilePersistenceStrategyTest {
 
 	@Test
 	public void testSave() throws Exception {
-		//set expectations
+		//set expectations on mock object
 		this.writer.println(false);
 		this.writer.close();
 		//change the mode of our mock to production
 		replay(this.writer);
-		//create Board
-		Board board = new Board(this.filePersistenceStrategy);
-		BoardState state = board.getState();
+		
 		//invoke method to test
-		this.filePersistenceStrategy.save(state);
+		this.filePersistenceStrategy.save(this.board.getState());
 		
 		//ensure our expectations have been fulfilled
 		verify(writer);
+	}
+	
+	@Test
+	public void testLoad() throws Exception {
+		//set expectations on mock object
+		expect(this.reader.readLine()).andReturn("false");
+		this.reader.close();
+		//change the mode of our mock to production
+		replay(this.reader);
+		
+		//invoke method to test
+		BoardState actual = this.filePersistenceStrategy.load();
+		
+		//verify
+		assertEquals(this.board.getState(), actual);
+		verify(this.reader);
 	}
 
 }
